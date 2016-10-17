@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<link rel="stylesheet" href="https://mbraak.github.io/jqTree/static/bower_components/bootstrap/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="https://mbraak.github.io/jqTree/static/bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
+	<link rel="stylesheet" href="https://mbraak.github.io/jqTree/jqtree.css">
+	<link rel="stylesheet" href="https://mbraak.github.io/jqTree/static/bower_components/pygments/css/monokai.css">
+	<link rel="stylesheet" href="https://mbraak.github.io/jqTree/static/bower_components/fontawesome/css/font-awesome.min.css">
+</head>
+<body>
+	<h1>{{category.1}}</h1>
+	<ul>
+		<li>
+			<strong>ID</strong>: {{category.0}}
+		</li>
+		<li>
+			<strong>Level</strong>: {{category.2}}
+		</li>
+		<li>
+			<strong>Best offer enabled</strong>: {{category.3}}
+		</li>
+		<li>
+			<strong>Parent ID</strong>: {{category.4}}
+		</li>
+	</ul>
+	<hr/>
+	<div id="tree1"></div>
+	<script src="https://mbraak.github.io/jqTree/static/bower_components/jquery-2/dist/jquery.min.js"></script>
+	<script src="https://mbraak.github.io/jqTree/tree.jquery.js"></script>
+	<script src="https://mbraak.github.io/jqTree/static/bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+	<script src="https://mbraak.github.io/jqTree/static/bower_components/jquery-mockjax/dist/jquery.mockjax.js"></script>
+	<script src="https://mbraak.github.io/jqTree/static/example_data.js"></script>
+	<script>
+	var data = {{rows}};
+	$('#tree1').tree({
+	    data: data,
+	    autoOpen: true,
+	    dragAndDrop: true
+	});
+	</script>
+</body>
+</html>
