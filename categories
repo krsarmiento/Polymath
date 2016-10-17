@@ -2,12 +2,7 @@
 # -*- coding: utf-8 -*-
 import xml.etree.ElementTree as ET
 from jinja2 import Template
-import core
-import requests
-import sqlite3
-import os
-import argparse
-import json
+import core, requests, sqlite3, os, argparse, json, sys
 
 SETTINGS = core.SETTINGS
 parser = argparse.ArgumentParser(description='List Ebay Categories.')
@@ -15,7 +10,8 @@ parser.add_argument('--rebuild', action='store_true', help='Rebuild database')
 parser.add_argument('--render', action='append', help='Render category tree')
 
 def rebuild():
-	os.remove(SETTINGS['DATABASE_NAME'])
+	if (core.databaseExists()):
+		os.remove(SETTINGS['DATABASE_NAME'])
 	conn = sqlite3.connect(SETTINGS['DATABASE_NAME'])
 	conn.execute(SETTINGS['CREATE_QUERY'])
 	r = requests.post(SETTINGS['API_ENDPOINT'], headers=SETTINGS['HEADERS'], data=SETTINGS['REQUEST_DATA'])
@@ -40,6 +36,9 @@ def rebuild():
 	conn.close()
 
 def render(category):
+	if (not core.databaseExists()):
+		print("No database present, exiting...")
+		sys.exit(1)
 	conn = sqlite3.connect(SETTINGS['DATABASE_NAME'])
 	conn.execute(SETTINGS['CREATE_QUERY'])
 	data = conn.execute(SETTINGS['SELECT_QUERY'], category)

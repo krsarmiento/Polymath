@@ -1,3 +1,5 @@
+from pathlib import Path
+
 SETTINGS = {
 	'DATABASE_NAME': 'example.db',
 	'CREATE_QUERY': 
@@ -48,3 +50,7 @@ def getInsertRow(el):
 	if (el and valid):
 		row = (el['CategoryID'], el['CategoryName'], el['CategoryLevel'], el['BestOfferEnabled'], el['CategoryParentID'])
 	return row
+
+def databaseExists():
+	db = Path(SETTINGS['DATABASE_NAME'])
+	return db.is_file()
