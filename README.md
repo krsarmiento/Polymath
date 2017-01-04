@@ -1,5 +1,4 @@
-# Polymath
-PolyMath Challenge for Fullstack Web Developer
+# Ebay Categories
 
 #Installation
 * Install python 3.* (With SQLite support)
