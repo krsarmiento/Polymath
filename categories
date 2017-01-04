@@ -1,0 +1,80 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+import xml.etree.ElementTree as ET
+from jinja2 import Template
+import core, requests, sqlite3, os, argparse, json, sys
+
+SETTINGS = core.SETTINGS
+parser = argparse.ArgumentParser(description='List Ebay Categories.')
+parser.add_argument('--rebuild', action='store_true', help='Rebuild database')
+parser.add_argument('--render', action='append', help='Render category tree')
+
+def rebuild():
+	if (core.databaseExists()):
+		os.remove(SETTINGS['DATABASE_NAME'])
+	conn = sqlite3.connect(SETTINGS['DATABASE_NAME'])
+	conn.execute(SETTINGS['CREATE_QUERY'])
+	r = requests.post(SETTINGS['API_ENDPOINT'], headers=SETTINGS['HEADERS'], data=SETTINGS['REQUEST_DATA'])
+	insertStatement = SETTINGS['INSERT_QUERY']
+	root = ET.fromstring(r.text)
+	categories = root[4]
+	rows = []
+	for category in categories:
+		el = {}
+		for element in category:
+			tag = element.tag[element.tag.index('}')+1:]
+			value = element.text
+			if (tag in SETTINGS['ALLOWED_KEYS']):
+				el[tag] = value
+		
+		row = core.getInsertRow(el)
+		if (row):
+			rows.append(row)
+
+	conn.executemany(SETTINGS['INSERT_QUERY'], rows)
+	conn.commit()
+	conn.close()
+
+def render(category):
+	if (not core.databaseExists()):
+		print("No database present, exiting...")
+		sys.exit(1)
+	conn = sqlite3.connect(SETTINGS['DATABASE_NAME'])
+	conn.execute(SETTINGS['CREATE_QUERY'])
+	data = conn.execute(SETTINGS['SELECT_QUERY'], category)
+	select = conn.execute(SETTINGS['PARENT_QUERY'], category)
+	rows = []
+	for element in select:
+		parent = {
+			'id': element[0],
+			'name': '(' + str(element[0]) + ') ' + element[1]
+		}
+		children = []
+		result = conn.execute(SETTINGS['SELECT_QUERY'], [parent['id']])
+		for el in result:
+			child = {
+				'id': el[0],
+				'name': '(' + str(el[0]) + ') ' + el[1]
+			}
+			children.append(child)
+		parent['children'] = children
+		rows.append(parent)
+
+	conn.commit()
+	inputFile = open(SETTINGS['TEMPLATE_FILE'], 'r')
+	outputFile = open(category[0] + '.html', 'w') 
+	template = Template(inputFile.read())
+	rendered = template.render(rows=json.dumps(rows), category=data.fetchone())
+	outputFile.write(rendered)
+	conn.close()
+	inputFile.close()
+	outputFile.close()
+
+args = parser.parse_args()
+if (args.rebuild):
+	print("Rebuilding database...")
+	rebuild()
+elif (args.render):
+	render(args.render)
+else:
+	parser.print_help()
